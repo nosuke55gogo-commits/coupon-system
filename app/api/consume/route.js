@@ -2,9 +2,8 @@ import { getSql } from "@/lib/db";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 
-const sql = getSql();
-
 export async function POST(request) {
+  const sql = getSql();
   try {
     const body = await request.json();
 
