@@ -1,10 +1,10 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
-export default function RedeemPage() {
+function RedeemContent() {
   const searchParams = useSearchParams();
   const couponId = searchParams.get("couponId");
   const router = useRouter();
@@ -26,9 +26,7 @@ export default function RedeemPage() {
             couponId,
           }),
         });
-
         const data = await response.json();
-
         if (data.success) {
           setCouponOk(true);
           setResult("✅ 利用可能なクーポンです");
@@ -43,11 +41,10 @@ export default function RedeemPage() {
         setLoading(false);
       }
     }
-
     if (couponId) {
       checkCouponInfo();
     } else {
-      setResult("❌ クーポンIDが見つかりません");
+      setResult("❌ クーポンIDがありません");
       setLoading(false);
     }
   }, [couponId]);
@@ -64,24 +61,16 @@ export default function RedeemPage() {
           storeCode,
         }),
       });
-
       const data = await response.json();
-
       if (data.success) {
-        sessionStorage.setItem(
-          "storeCode",
-          storeCode
-        ); 
-        router.push(
-          `/redeem/confirm?couponId=${couponId}`
-        );
+        sessionStorage.setItem("storeCode", storeCode);
+        router.push(`/redeem/confirm?couponId=${couponId}`);
       } else {
         setResult(`❌ ${data.error}`);
         if (data.fatal) {
           setCouponOk(false);
         }
       }
-
     } catch (error) {
       console.error(error);
       setResult("❌ サーバーエラー");
@@ -91,27 +80,10 @@ export default function RedeemPage() {
   return (
     <main className="min-h-screen flex flex-col justify-center items-center p-4">
       <div className="w-full max-w-md border rounded-xl p-6 shadow-md flex flex-col gap-4">
-
-        <h1 className="text-2xl font-bold text-center">
-          クーポン確認
-        </h1>
-
-        <p className="break-all text-center">
-          クーポンID: {couponId}
-        </p>
-
-        {loading && (
-          <p className="text-center">
-            判定中...
-          </p>
-        )}
-
-        {!loading && (
-          <p className="text-center">
-            {result}
-          </p>
-        )}
-
+        <h1 className="text-2xl font-bold text-center">クーポン確認</h1>
+        <p className="break-all text-center">クーポンID: {couponId}</p>
+        {loading && <p className="text-center">判定中...</p>}
+        {!loading && <p className="text-center">{result}</p>}
         {!loading && couponOk && (
           <>
             <input
@@ -121,14 +93,24 @@ export default function RedeemPage() {
               onChange={(e) => setStoreCode(e.target.value)}
               className="border rounded p-2"
             />
-
             <button className="py-2 px-4 border rounded" onClick={checkCoupon}>
               確認
             </button>
           </>
         )}
-
       </div>
     </main>
+  );
+}
+
+export default function RedeemPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex justify-center items-center">
+        <p>読み込み中...</p>
+      </main>
+    }>
+      <RedeemContent />
+    </Suspense>
   );
 }
