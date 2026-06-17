@@ -12,7 +12,8 @@ function ConfirmContent() {
   useEffect(() => {
     async function verify() {
       try {
-        const storeCode = sessionStorage.getItem("storeCode");
+        const storeCode = typeof window !== "undefined" ? sessionStorage.getItem("storeCode") : null;
+        
         if (!storeCode) {
           router.replace("/redeem");
           return;
@@ -32,7 +33,9 @@ function ConfirmContent() {
             "Confirm verification failed:",
             data.error
           );
-          sessionStorage.removeItem("storeCode");
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("storeCode");
+          }
           router.replace(`/redeem?couponId=${couponId}`);
           return;
         }
@@ -49,7 +52,8 @@ function ConfirmContent() {
 
   async function consumeCoupon() {
     try {
-      const storeCode = sessionStorage.getItem("storeCode");
+      const storeCode = typeof window !== "undefined" ? sessionStorage.getItem("storeCode") : null;
+      
       const response = await fetch("/api/consume", {
         method: "POST",
         headers: {
@@ -62,7 +66,9 @@ function ConfirmContent() {
       });
       const data = await response.json();
       if (data.success) {
-        sessionStorage.removeItem("storeCode");
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("storeCode");
+        }
         router.replace(`/redeem/complete?couponId=${couponId}`);
       } else {
         router.replace(`/redeem?couponId=${couponId}`);
